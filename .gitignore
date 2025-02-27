@@ -1,0 +1,41 @@
+# Virtual Environment
+venv/
+env/
+credentials.json
+*.pyc
+__pycache__/
+
+# Django Secret & Environment Variables
+.env
+
+# Database
+db.sqlite3
+*.db
+
+# Migrations
+*/migrations/*.py
+*/migrations/*.pyc
+
+# Static & Media Files
+staticfiles/
+media/
+static/
+
+# Logs & Debug Files
+*.log
+debug.log
+
+# Compiled Python Files
+*.pyc
+*.pyo
+*.pyd
+
+# IDE & Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS-Specific Files
+.DS_Store
+Thumbs.db
