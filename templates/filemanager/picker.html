@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Google Drive Picker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .picker-container {
+            margin-top: 20px;
+        }
+        .file-info {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            display: none;
+        }
+        .json-container {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow: auto;
+            max-height: 300px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Google Drive File Picker</h1>
+    <p>Select a JSON file from your Google Drive:</p>
+    
+    <div class="picker-container">
+        <button id="picker-button">Open Google Picker</button>
+    </div>
+    
+    <div id="file-info" class="file-info">
+        <h3>Selected File:</h3>
+        <p><strong>Name:</strong> <span id="file-name"></span></p>
+        <p><strong>Type:</strong> <span id="file-type"></span></p>
+        <p><strong>Size:</strong> <span id="file-size"></span></p>
+        <h3>JSON Content:</h3>
+        <pre id="json-content" class="json-container"></pre>
+    </div>
+
+    <!-- Load the Google API libraries -->
+    <script type="text/javascript" src="https://apis.google.com/js/api.js"></script>
+    <script>
+        // The access token from your existing OAuth implementation
+        var accessToken = "{{ access_token }}";
+        var apiKey = "{{ api_key }}";
+        var pickerApiLoaded = false;
+        
+        // Set up the Picker API
+        function loadPickerAPI() {
+            gapi.load('picker', {'callback': onPickerApiLoad});
+        }
+        
+        function onPickerApiLoad() {
+            pickerApiLoaded = true;
+            createPicker();
+        }
+        
+        // Create and render the picker
+        function createPicker() {
+            if (pickerApiLoaded && accessToken) {
+                var picker = new google.picker.PickerBuilder()
+                    .addView(google.picker.ViewId.DOCS)
+                    .addView(new google.picker.View(google.picker.ViewId.DOCS)
+                        .setMimeTypes('application/json'))
+                    .setOAuthToken(accessToken)
+                    .setDeveloperKey(apiKey)
+                    .setCallback(pickerCallback)
+                    .build();
+                picker.setVisible(true);
+            }
+        }
+        
+        // Process the picked file
+        function pickerCallback(data) {
+            if (data.action == google.picker.Action.PICKED) {
+                var document = data.docs[0];
+                
+                // Display file information
+                document.getElementById('file-name').textContent = document.name;
+                document.getElementById('file-type').textContent = document.mimeType;
+                document.getElementById('file-size').textContent = formatFileSize(document.sizeBytes);
+                document.getElementById('file-info').style.display = 'block';
+                
+                // Send to server for processing
+                fetch('/process-picked-file/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfToken()
+                    },
+                    body: JSON.stringify({
+                        fileId: document.id,
+                        fileName: document.name,
+                        mimeType: document.mimeType
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.content) {
+                        // Format JSON content
+                        try {
+                            const jsonObj = typeof data.content === 'string' ? 
+                                JSON.parse(data.content) : data.content;
+                            document.getElementById('json-content').textContent = 
+                                JSON.stringify(jsonObj, null, 2);
+                        } catch (e) {
+                            document.getElementById('json-content').textContent = 
+                                'Error parsing JSON: ' + e.message;
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error processing file:', error);
+                });
+            }
+        }
+        
+        // Format file size
+        function formatFileSize(bytes) {
+            if (!bytes) return 'Unknown';
+            
+            const units = ['B', 'KB', 'MB', 'GB'];
+            let size = parseInt(bytes, 10);
+            let unitIndex = 0;
+            
+            while (size >= 1024 && unitIndex < units.length - 1) {
+                size /= 1024;
+                unitIndex++;
+            }
+            
+            return `${size.toFixed(2)} ${units[unitIndex]}`;
+        }
+        
+        // Get Django CSRF token
+        function getCsrfToken() {
+            return document.querySelector('[name=csrfmiddlewaretoken]').value;
+        }
+        
+        // Initialize the picker when the button is clicked
+        document.getElementById('picker-button').addEventListener('click', function() {
+            if (!accessToken) {
+                alert('No access token available. Please authenticate first.');
+                return;
+            }
+            
+            loadPickerAPI();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3>Chat Rooms</h3>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group mb-4">
+                        {% for room in chat_rooms %}
+                            <li class="list-group-item">
+                                <a href="{% url 'chat:room' room.name %}">{{ room.name }}</a>
+                            </li>
+                        {% empty %}
+                            <li class="list-group-item">No chat rooms available.</li>
+                        {% endfor %}
+                    </ul>
+                    
+                    <form id="createRoomForm">
+                        <div class="input-group mb-3">
+                            <input type="text" id="roomName" class="form-control" placeholder="Create a new room">
+                            <button class="btn btn-primary" type="submit">Create</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('createRoomForm').onsubmit = function(e) {
+        e.preventDefault();
+        var roomName = document.getElementById('roomName').value;
+        if (roomName) {
+            window.location.pathname = '/chat/' + roomName + '/';
+        }
+    };
+</script>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="jumbotron">
+    <h1>Welcome to My App</h1>
+    {% if user.is_authenticated %}
+      <p>Hello, {{ user.profile.full_name|default:user.email }}!</p>
+      <a href="{% url 'profile' %}" class="btn btn-primary">View Profile</a>
+      <a href="{% url 'account_logout' %}" class="btn btn-secondary">Logout</a>
+    {% else %}
+      <p>Please sign in with your Google account</p>
+      <a href="{% url 'account_login' %}" class="btn btn-primary">Sign in with Google</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
