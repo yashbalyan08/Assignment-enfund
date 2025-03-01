@@ -8,6 +8,7 @@ from django.conf import settings
 import os
 from dotenv import load_dotenv
 from .models import DriveJSONFile
+from django.contrib.auth.decorators import login_required
 
 load_dotenv()
 
@@ -33,6 +34,7 @@ def picker_view(request):
     
     return render(request, 'filemanager/picker.html', context)
 
+@login_required
 def process_picked_file(request):
     """
     Process a file picked from Google Drive and save it to the database.
@@ -85,6 +87,7 @@ def process_picked_file(request):
             'message': str(e)
         }, status=500)
 
+@login_required
 def get_file_content(file_id, access_token):
     """
     Fetch file content from Google Drive using the existing OAuth token.
