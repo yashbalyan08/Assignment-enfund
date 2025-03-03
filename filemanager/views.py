@@ -19,8 +19,11 @@ def picker_view(request):
     """
     # Get the access token from your existing OAuth2 implementation
     # This could be from the session, a database, or wherever you store it
-    access_token = request.session.get('google_access_token')
-    
+    access_token = request.session.get('access_token')
+    for key, value in request.session.items():
+        print(f"{key}: {value}")  # Print each key-value pair on a new line
+
+    print('access_token -> ', access_token)
     # If no token is available, you might want to redirect to authentication
     if not access_token:
         # Redirect or handle as needed based on your OAuth2 implementation
